@@ -677,13 +677,15 @@
             const baseTitle = titles[Math.floor(Math.random() * titles.length)];
             const bookId = `PSRU-${catObj.id.toUpperCase()}-${String(i).padStart(3, '0')}`;
             const borrowCount = Math.floor(Math.random() * 10);
+            const roiVal = (Math.random() * 50 + 20).toFixed(1); // Mock ROI 20-70%
 
             ALL_BOOKS.push({
                 id: bookId,
                 title: `${baseTitle} เล่มที่ ${i}`,
                 cat: catObj.id,
+                roi: `${roiVal}%`,
                 meta: `${catObj.thai} — ยืม ${borrowCount} ครั้ง/ปี`,
-                rec: `AI แนะนำ: หนังสือเล่มนี้มีการใช้งานน้อย (${borrowCount} ครั้ง) แนะนำให้จัดกิจกรรมโปรโมตในกลุ่มคณะ${catObj.thai} หรือจัดทำเป็นดิจิทัลไฟล์เพื่อลดพื้นที่จัดเก็บ`,
+                rec: `AI แนะนำ: หนังสือเล่มนี้มีการใช้งานน้อย (${borrowCount} ครั้ง) มีค่าความคุ้มค่า (ROI) อยู่ที่ ${roiVal}% แนะนำให้ปรับแผนการโฆษณาตามกลุ่มเป้าหมาย`,
                 target: `นักศึกษา ${catObj.thai}`
             });
         }
@@ -759,14 +761,10 @@
 
             filtered.forEach(book => {
                 const div = document.createElement('div');
-                div.className = 'book-item border-l-4 border-l-transparent';
+                div.className = 'book-item border-l-4 border-l-transparent flex items-center justify-between py-3';
                 div.innerHTML = `
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="text-[8px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded">${book.id}</span>
-                        <span class="text-[8px] opacity-40">${book.cat}</span>
-                    </div>
-                    <div class="text-[11px] font-bold line-clamp-1">${book.title}</div>
-                    <div class="text-[9px] opacity-60">${book.meta}</div>
+                    <div class="text-[11px] font-bold line-clamp-1 flex-1">${book.title}</div>
+                    <div class="text-[10px] font-black text-green-700 bg-green-50 px-2 py-1 rounded">ROI: ${book.roi}</div>
                 `;
                 div.onclick = () => {
                     document.querySelectorAll('.book-item').forEach(i => {
