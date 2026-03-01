@@ -518,12 +518,22 @@
                                 oninput="renderBookList()">
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase">เรียงตาม:</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">เรียง:</span>
                             <select id="sortFilter"
                                 class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 outline-none focus:border-green-700 transition-all cursor-pointer"
                                 onchange="renderBookList()">
+                                <option value="roi_desc">ROI (มาก 👉 น้อย)</option>
+                                <option value="roi_asc">ROI (น้อย 👉 มาก)</option>
                                 <option value="id">Book ID (A-Z)</option>
-                                <option value="roi">ความคุ้มค่า (ROI)</option>
+                            </select>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase ml-1">โชว์:</span>
+                            <select id="limitFilter"
+                                class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 outline-none focus:border-green-700 transition-all cursor-pointer"
+                                onchange="renderBookList()">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100" selected>100</option>
                             </select>
                         </div>
                     </div>
@@ -849,6 +859,7 @@
             const list = document.getElementById('bookList');
             const category = document.getElementById('categoryFilter').value;
             const sortVal = document.getElementById('sortFilter').value;
+            const limitVal = parseInt(document.getElementById('limitFilter').value);
             const searchQuery = document.getElementById('bookSearch').value.toLowerCase();
             const countLabel = document.getElementById('bookCount');
 
@@ -868,14 +879,18 @@
             // Sorting Logic
             if (sortVal === 'id') {
                 filtered.sort((a, b) => a.id.localeCompare(b.id));
-            } else if (sortVal === 'roi') {
-                // Parse ROI percentage (e.g., "45.2%") to number
+            } else if (sortVal === 'roi_desc') {
                 filtered.sort((a, b) => parseFloat(b.roi) - parseFloat(a.roi));
+            } else if (sortVal === 'roi_asc') {
+                filtered.sort((a, b) => parseFloat(a.roi) - parseFloat(b.roi));
             }
 
-            countLabel.innerText = `${filtered.length} เล่ม`;
+            // Apply Limit
+            const displayed = filtered.slice(0, limitVal);
 
-            filtered.forEach(book => {
+            countLabel.innerText = `${displayed.length} / ${filtered.length} เล่ม`;
+
+            displayed.forEach(book => {
                 const div = document.createElement('div');
                 div.className = 'book-item border-l-4 border-l-transparent flex items-center justify-between py-3';
                 div.innerHTML = `
