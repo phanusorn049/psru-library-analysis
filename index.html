@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSRU Library Data Analysis | AI Solution</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --psru-green: #15803d;
+            /* Forest Green */
+            --psru-green-light: #22c55e;
+            --psru-white: #ffffff;
+            --psru-soft-bg: #f8fafc;
+            --psru-dark: #0f172a;
+        }
+
+        body {
+            background-color: var(--psru-white);
+            color: var(--psru-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--psru-green) 0%, var(--psru-green-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .psru-card {
+            background: var(--psru-white);
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .psru-card:hover {
+            border-color: var(--psru-green-light);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-8px);
+        }
+
+        /* Dashboard Specific Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            /* 7 days of the week */
+            gap: 8px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .heatmap-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+        }
+
+        .heatmap-cell span {
+            font-size: 8px;
+            opacity: 0.7;
+            font-weight: normal;
+        }
+
+        .month-btn {
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #f1f5f9;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .month-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .month-btn-active {
+            background: #15803d !important;
+            color: white !important;
+            border-color: #15803d !important;
+        }
+
+        .lvl-0 {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .lvl-1 {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .lvl-2 {
+            background: #86efac;
+            color: #14532d;
+        }
+
+        .lvl-3 {
+            background: #22c55e;
+            color: #ffffff;
+        }
+
+        .lvl-4 {
+            background: #15803d;
+            color: #ffffff;
+        }
+
+        .book-item {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .book-item:hover {
+            background: #f0fdf4;
+            border-color: var(--psru-green-light);
+        }
+
+        .book-item-active {
+            background: #15803d !important;
+            color: white !important;
+            border-color: #15803d !important;
+        }
+
+        .nav-sticky {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .hero-bg {
+            background: radial-gradient(circle at 10% 20%, rgba(21, 128, 61, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+        }
+
+        .ai-badge {
+            background-color: var(--psru-green);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-fade {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .section-fade.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tech-pill {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+        }
+
+        /* AI Scan Overlay */
+        #aiScanOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--psru-green-light);
+            box-shadow: 0 0 20px var(--psru-green-light);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        .code-stream {
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--psru-green-light);
+            opacity: 0.3;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body class="overflow-x-hidden hero-bg">
+
+    <!-- Navigation -->
+    <nav class="nav-sticky fixed top-0 w-full z-50 px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-700 rounded-lg flex items-center justify-center shadow-md">
+                <i data-lucide="library" class="text-white w-6 h-6"></i>
+            </div>
+            <div>
+                <span class="text-lg font-extrabold tracking-tight block leading-none">LIBRARY <span
+                        class="text-green-700">ANALYSIS</span></span>
+                <span class="text-[10px] text-green-600 font-bold tracking-widest uppercase">PSRU Intelligence</span>
+            </div>
+        </div>
+        <div class="hidden md:flex gap-8 text-sm font-medium text-gray-500">
+            <a href="#about" class="hover:text-green-700 transition-colors">เป้าหมาย</a>
+            <a href="#solution" class="hover:text-green-700 transition-colors">แนวคิด AI</a>
+            <a href="#dashboard" class="hover:text-green-700 transition-colors font-bold text-green-700">Analytics
+                Dashboard</a>
+            <a href="#tech" class="hover:text-green-700 transition-colors">เทคโนโลยี</a>
+        </div>
+        <button onclick="triggerAIScan()"
+            class="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-full text-sm font-bold transition-all shadow-lg shadow-green-700/20 active:scale-95">
+            จำลองการวิเคราะห์ AI
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen pt-40 px-6 flex flex-col items-center text-center">
+        <div class="ai-badge mb-8 shadow-sm">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> AI WORKSHOP @ PSRU
+        </div>
+        <h1 class="text-6xl md:text-8xl font-black mb-8 tracking-tighter leading-[1.1]">
+            <span class="text-slate-900">Library Data</span><br>
+            <span class="gradient-text">Value Analysis.</span>
+        </h1>
+        <p class="text-xl text-slate-500 max-w-2xl mb-12 font-medium leading-relaxed">
+            ระบบวิเคราะห์ความคุ้มค่าและเพิ่มโอกาสให้หนังสือ "นอกสายตา"
+            ด้วยขุมพลัง <span class="text-green-700 font-bold">AI แนะนำหนังสือเฉพาะตัว</span>
+            เพื่อห้องสมุดมหาวิทยาลัยราชภัฏพิบูลสงคราม
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+            <button onclick="triggerAIScan()"
+                class="bg-green-700 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-green-800 transition-all shadow-xl shadow-green-700/20 active:scale-95">
+                วิเคราะห์ความคุ้มค่าทั่งระบบ <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+            </button>
+            <a href="#about"
+                class="bg-white border-2 border-slate-200 text-slate-700 px-8 py-4 rounded-2xl font-bold hover:border-green-700 hover:text-green-700 transition-all">
+                รายละเอียดโครงการ
+            </a>
+        </div>
+
+        <div class="mt-20 w-full max-w-5xl section-fade">
+            <div class="psru-card p-4 overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2000&auto=format&fit=crop"
+                    alt="PSRU Library" class="rounded-xl object-cover h-[400px] w-full opacity-90">
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Goals Section -->
+    <section id="about" class="section-fade py-32 px-6 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8">
+                <div class="inline-flex items-center gap-2 text-green-700 font-bold uppercase tracking-widest text-sm">
+                    <div class="w-8 h-[2px] bg-green-700"></div> Project Objectives
+                </div>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900">ทำไมต้องเป็นระบบ<br>วิเคราะห์ความคุ้มค่า?
+                </h2>
+                <div class="space-y-6 text-slate-600 text-lg leading-relaxed">
+                    <p>
+                        ปัญหาหลักของห้องสมุดคือหนังสือจำนวนมากถูกจัดเก็บไว้โดยไม่ได้ถูกหยิบใช้งาน (Low Borrow Rate)
+                        ส่งผลต่อความคุ้มค่าของพื้นที่และงบประมาณที่เสียไป
+                    </p>
+                    <p class="font-semibold text-slate-900">
+                        โครงการนี้จึงมุ่งเน้นไปที่:
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 items-start">
+                            <i data-lucide="check-circle-2" class="text-green-600 w-6 h-6 mt-1 flex-shrink-0"></i>
+                            <span>หาความคุ้มค่า (ROI) ของหนังสือแต่ละเล่มเพื่อช่วยบรรณารักษ์ตัดสินใจ</span>
+                        </li>
+                        <li class="flex gap-3 items-start">
+                            <i data-lucide="check-circle-2" class="text-green-600 w-6 h-6 mt-1 flex-shrink-0"></i>
+                            <span>ผลักดันหนังสือที่มีการยืมน้อย (Static Assets)
+                                ให้เข้าถึงมือผู้อ่านที่ต้องการจริงๆ</span>
+                        </li>
+                        <li class="flex gap-3 items-start">
+                            <i data-lucide="check-circle-2" class="text-green-600 w-6 h-6 mt-1 flex-shrink-0"></i>
+                            <span>ระบบแนะนำที่ฉลาดกว่าเดิม ไม่ได้แนะนำแค่เล่มยอดนิยม แต่แนะนำเล่มที่ "ใช่"
+                                สำหรับคุณ</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="psru-card p-8 bg-green-50/30 border-green-100">
+                    <h4 class="text-3xl font-bold text-green-700 mb-2">40%</h4>
+                    <p class="text-sm text-slate-600">พื้นที่สามารถจัดสรรใหม่ได้จากการคัดกรองหนังสือที่คุ้มค่าต่ำ</p>
+                </div>
+                <div class="psru-card p-8 bg-green-50/30 border-green-100">
+                    <h4 class="text-3xl font-bold text-green-700 mb-2">2.5x</h4>
+                    <p class="text-sm text-slate-600">อัตราการหมุนเวียนหนังสือเพิ่มขึ้นหลังใช้ระบบแนะนำ AI</p>
+                </div>
+                <div class="psru-card p-8 bg-white col-span-2">
+                    <div class="flex items-center gap-4 mb-4">
+                        <i data-lucide="bar-chart-3" class="text-green-600 w-8 h-8"></i>
+                        <h4 class="font-bold text-lg text-slate-900">PSRU Database Integration</h4>
+                    </div>
+                    <p class="text-sm text-slate-500 italic">"เชื่อมต่อข้อมูลจริงจากฐานข้อมูลห้องสมุด PSRU
+                        เพื่อการวิเคราะห์ที่เป็นปัจจุบันที่สุด"</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Core Feature Header -->
+    <section id="solution" class="bg-green-700 py-24 px-6 text-center text-white">
+        <div class="max-w-3xl mx-auto space-y-6">
+            <h2 class="text-4xl md:text-5xl font-black">AI Feature & Integration</h2>
+            <p class="text-green-100 text-lg">หัวใจหลักของระบบที่ใช้ขับเคลื่อนห้องสมุดไปสู่ยุค Digital Intelligence</p>
+        </div>
+    </section>
+
+    <!-- AI Feature Detail Grid -->
+    <section class="py-24 px-6 max-w-7xl mx-auto -mt-16">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="psru-card p-10 flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-8">
+                    <i data-lucide="calculator" class="text-green-700 w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Value Scaling (ROI)</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">
+                    ใช้ AI คำนวณความคุ้มค่าของหนังสือแต่ละเล่ม โดยวัดจาก [ความบ่อยในการยืม / ราคาจัดซื้อ /
+                    อายุการใช้งาน] เพื่อแยกหนังสือที่เป็น "สินทรัพย์ที่มีค่า" กับ "หนังสือที่มีต้นทุนแฝง"
+                </p>
+                <div
+                    class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">
+                    Machine Learning Analysis</div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="psru-card p-10 flex flex-col items-center text-center border-green-200">
+                <div
+                    class="w-16 h-16 bg-green-700 rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-green-700/20">
+                    <i data-lucide="lightbulb" class="text-white w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Underborrowed Recs</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">
+                    ระบบ AI จะมองหาหนังสือที่มีอัตราการยืมน้อยแต่มีคุณภาพสูง
+                    และนำมาแนะนำให้กับกลุ่มนักศึกษาที่ต้องการเนื้อหาในด้านนั้นๆ โดยเฉพาะ เพื่อเพิ่มโอกาสในการถูกยืม
+                </p>
+                <div
+                    class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">
+                    Recommendation Engine</div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="psru-card p-10 flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-8">
+                    <i data-lucide="search" class="text-green-700 w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Deep Context Search</h3>
+                <p class="text-slate-500 leading-relaxed mb-6">
+                    ค้นหาที่ลึกกว่าแค่ชื่อเรื่อง AI จะวิเคราะห์เนื้อหาภายในและบริบทของวิชาเรียน
+                    เพื่อดึงผลลัพธ์ที่ตรงกับจุดประสงค์การค้นหาของผู้ใช้งานมากที่สุด
+                </p>
+                <div
+                    class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">
+                    NLP Integration</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="py-24 px-6 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto space-y-12">
+            <div
+                class="flex flex-col md:flex-row justify-between items-end gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm transition-all">
+                <div class="space-y-4 w-full md:w-auto">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-8 bg-green-700 rounded-full"></div>
+                        <h2 class="text-4xl font-black text-slate-900 leading-none">PSRU Data Dashboard</h2>
+                    </div>
+
+                    <!-- Global Filter -->
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">หมวดหมู่:</span>
+                        <select id="categoryFilter"
+                            class="bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-xs font-bold text-green-700 outline-none hover:border-green-700 transition-all cursor-pointer">
+                            <option value="ทั้งหมด">ทั้งหมด (Global)</option>
+                            <option value="IT">IT / คอมพิวเตอร์</option>
+                            <option value="Nursing">คณะพยาบาลศาสตร์</option>
+                            <option value="Education">คณะครุศาสตร์</option>
+                            <option value="Engineering">คณะวิศวกรรมศาสตร์</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="p-4 text-center min-w-[140px]">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total Books
+                        </div>
+                        <div id="statTotal" class="text-3xl font-black text-green-700 tracking-tighter transition-all">
+                            12,481</div>
+                    </div>
+                    <div class="p-4 text-center min-w-[140px] border-l border-slate-100">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Borrow Rate
+                        </div>
+                        <div id="statRate" class="text-3xl font-black text-green-700 tracking-tighter transition-all">
+                            64%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini Stat Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="psru-card p-6 bg-white flex flex-col items-center justify-center text-center group">
+                    <div
+                        class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl mb-4 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i data-lucide="award" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">หมวดยอดนิยม</div>
+                    <div id="miniStatPop" class="text-lg font-black text-slate-900">Education</div>
+                </div>
+                <div class="psru-card p-6 bg-white flex flex-col items-center justify-center text-center group">
+                    <div
+                        class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl mb-4 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-all">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">ระยะเวลายืมเฉลี่ย
+                    </div>
+                    <div id="miniStatTime" class="text-lg font-black text-slate-900">5.2 วัน</div>
+                </div>
+                <div class="psru-card p-6 bg-white flex flex-col items-center justify-center text-center group">
+                    <div
+                        class="w-10 h-10 bg-red-50 text-red-600 rounded-xl mb-4 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all">
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">คืนหนังสือเกินกำหนด
+                    </div>
+                    <div id="miniStatOverdue" class="text-lg font-black text-slate-900">12%</div>
+                </div>
+                <div class="psru-card p-6 bg-white flex flex-col items-center justify-center text-center group">
+                    <div
+                        class="w-10 h-10 bg-green-50 text-green-600 rounded-xl mb-4 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all">
+                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">AI ROI Boost</div>
+                    <div id="miniStatBoost" class="text-lg font-black text-green-700">+24%</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Sidebar: Book List -->
+                <div class="psru-card p-6 flex flex-col gap-4 h-[750px]">
+                    <h3 class="font-bold text-slate-900 border-b pb-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="book-open" class="w-4 h-4 text-green-700"></i> หนังสือระบบวิเคราะห์
+                        </div>
+                        <span id="bookCount"
+                            class="text-[9px] bg-slate-100 px-2 py-1 rounded text-slate-500 font-bold">0 เล่ม</span>
+                    </h3>
+
+                    <!-- Search Filter -->
+                    <div class="relative">
+                        <i data-lucide="search"
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400"></i>
+                        <input type="text" id="bookSearch" placeholder="ค้นหาชื่อ หรือ ID หนังสือ..."
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-[11px] outline-none focus:border-green-700 transition-all">
+                    </div>
+
+                    <div class="overflow-y-auto pr-2 space-y-2 flex-1 custom-scrollbar" id="bookList">
+                        <!-- Items injected by JS -->
+                    </div>
+                    <div class="mt-auto pt-4 border-t">
+                        <div id="aiRecPanel" class="hidden animate-in">
+                            <div class="bg-green-700 text-white p-4 rounded-xl space-y-3">
+                                <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+                                    <i data-lucide="sparkles" class="w-3 h-3"></i> AI Recommendation
+                                </div>
+                                <p id="aiRecText" class="text-xs leading-relaxed italic opacity-90"></p>
+                                <div class="flex justify-between text-[10px] pt-2 border-t border-white/20">
+                                    <span>Target Audience</span>
+                                    <span id="aiRecTarget" class="font-bold"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="recPlaceholder"
+                            class="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                            <p class="text-[10px] text-slate-400 italic">เลือกหนังสือเพื่อดูคำแนะนำ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main: Charts -->
+                <div class="space-y-6">
+                    <!-- Daily Heatmap -->
+                    <div class="psru-card p-8">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                            <h3 class="font-bold text-slate-900">
+                                สถิติการยืมรายวันปี 2025
+                                <div class="text-[10px] text-green-700 font-bold uppercase mt-1">Monthly Borrowing Data
+                                </div>
+                            </h3>
+                            <div class="flex flex-wrap gap-2" id="monthSelector">
+                                <!-- Month buttons injected by JS -->
+                            </div>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-7 gap-8 mb-4 max-w-600 mx-auto text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <span>อา.</span><span>จ.</span><span>อ.</span><span>พ.</span><span>พฤ.</span><span>ศ.</span><span>ส.</span>
+                        </div>
+
+                        <div id="heatmap" class="heatmap-grid text-slate-500">
+                            <!-- Injected by JS -->
+                        </div>
+
+                        <div class="mt-8 flex justify-center gap-6 text-[10px] items-center border-t pt-6">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 lvl-0 rounded-sm"></div> <span class="text-slate-500">0 คราว</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 lvl-2 rounded-sm"></div> <span class="text-slate-500">1-40
+                                    ครั้ง</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 lvl-4 rounded-sm"></div> <span class="text-slate-500">80+
+                                    ครั้ง</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Trends -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="psru-card p-8 h-[350px]">
+                            <h3 class="font-bold text-slate-900 mb-4 text-sm">Borrowing by Category</h3>
+                            <canvas id="barChart"></canvas>
+                        </div>
+                        <div class="psru-card p-8 h-[350px]">
+                            <h3 class="font-bold text-slate-900 mb-4 text-sm">วิเคราะห์ความคุ้มค่า (ROI) - AI คาดการณ์
+                            </h3>
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section id="tech" class="section-fade py-32 px-6">
+        <div class="px-6 max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl font-bold text-slate-900 mb-16">Technology Used</h2>
+            <div class="flex flex-wrap justify-center gap-6">
+                <div class="tech-pill"><i data-lucide="layers" class="text-green-600"></i> REACT SPA</div>
+                <div class="tech-pill"><i data-lucide="database" class="text-green-600"></i> PANDAS</div>
+                <div class="tech-pill"><i data-lucide="brain" class="text-green-600"></i> SCIKIT-LEARN</div>
+                <div class="tech-pill"><i data-lucide="bar-chart-2" class="text-green-600"></i> CHART.JS</div>
+                <div class="tech-pill"><i data-lucide="zap" class="text-green-600"></i> VITE</div>
+                <div class="tech-pill"><i data-lucide="scissors" class="text-green-600"></i> TAILWIND</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 text-center border-t border-slate-200">
+        <div class="flex justify-center items-center gap-3 mb-8">
+            <div class="w-8 h-8 bg-green-700 rounded-md flex items-center justify-center">
+                <i data-lucide="library" class="text-white w-5 h-5"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-900 uppercase tracking-widest">Library Data Analysis PSRU</span>
+        </div>
+        <p class="text-slate-500 text-sm max-w-md mx-auto mb-10 leading-relaxed">
+            โครงการส่งท้าย AI Workshop 2026: มุ่งเน้นการประยุกต์ใช้เทคโนโลยี AI
+            เพื่อพัฒนาการบริหารจัดการห้องสมุดมหาวิทยาลัยอย่างยั่งยืน
+        </p>
+        <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            © 2026 Crafted for PSRU AI Workshop Presentation
+        </div>
+    </footer>
+
+    <!-- AI Scanning Overlay -->
+    <div id="aiScanOverlay">
+        <div class="scan-line"></div>
+        <div class="space-y-8 max-w-lg px-6 relative z-10">
+            <div
+                class="w-24 h-24 bg-green-700 rounded-3xl mx-auto flex items-center justify-center shadow-2xl shadow-green-500/50 animate-pulse">
+                <i data-lucide="sparkles" class="text-white w-12 h-12"></i>
+            </div>
+            <div class="space-y-3">
+                <h2 class="text-3xl font-black tracking-tighter">AI AGENT ANALYZING...</h2>
+                <p class="text-green-400 font-bold uppercase tracking-[0.2em] text-[10px]">Processing PSRU Library
+                    Database v2.0</p>
+            </div>
+            <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                <div id="scanProgress" class="bg-green-500 h-full w-0 transition-all duration-[2000ms]"></div>
+            </div>
+            <div class="flex flex-col gap-1 text-left">
+                <div class="code-stream italic">>> Loading borrowing logs... DONE</div>
+                <div class="code-stream italic">>> Calculating ROI index for 12,481 assets... DONE</div>
+                <div class="code-stream italic">>> Filtering Static Assets... DONE</div>
+                <div class="code-stream italic">>> Generating Recommendation Engine nodes... DONE</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // Data Generation - 100 Books
+        const categories = [
+            { id: 'IT', label: 'IT', thai: 'คอมพิวเตอร์' },
+            { id: 'Nursing', label: 'Nursing', thai: 'พยาบาล' },
+            { id: 'Education', label: 'Edu', thai: 'ครู' },
+            { id: 'Engineering', label: 'Eng', thai: 'วิศวะ' }
+        ];
+
+        const titles = [
+            'พื้นฐานการเขียนโปรแกรม', 'การพยาบาลแม่และเด็ก', 'จิตวิทยาเด็กประถม', 'การออกแบบโครงสร้างเหล็ก',
+            'ระบบฐานข้อมูล', 'จริยธรรมวิชาชีพครู', 'ระบบนิเวศการเรียนรู้', 'การทำเหมืองข้อมูล AI',
+            'สรีรวิทยาเบื้องต้น', 'กลศาสตร์วิศวกรรม', 'เครือข่ายคอมพิวเตอร์ดิจิทัล', 'การจัดการศึกษาพิเศษ'
+        ];
+
+        const ALL_BOOKS = [];
+        for (let i = 1; i <= 100; i++) {
+            const catObj = categories[Math.floor(Math.random() * categories.length)];
+            const baseTitle = titles[Math.floor(Math.random() * titles.length)];
+            const bookId = `PSRU-${catObj.id.toUpperCase()}-${String(i).padStart(3, '0')}`;
+            const borrowCount = Math.floor(Math.random() * 10);
+
+            ALL_BOOKS.push({
+                id: bookId,
+                title: `${baseTitle} เล่มที่ ${i}`,
+                cat: catObj.id,
+                meta: `${catObj.thai} — ยืม ${borrowCount} ครั้ง/ปี`,
+                rec: `AI แนะนำ: หนังสือเล่มนี้มีการใช้งานน้อย (${borrowCount} ครั้ง) แนะนำให้จัดกิจกรรมโปรโมตในกลุ่มคณะ${catObj.thai} หรือจัดทำเป็นดิจิทัลไฟล์เพื่อลดพื้นที่จัดเก็บ`,
+                target: `นักศึกษา ${catObj.thai}`
+            });
+        }
+
+        let barChart, radarChart;
+        let currentMonth = 0;
+
+        function updateCharts(category) {
+            const chartData = {
+                'ทั้งหมด': { bar: [1200, 950, 1400, 700, 1100, 850], radar: [85, 92, 45, 78, 90], total: '12,481', rate: '64%', pop: 'Education', time: '5.2 วัน', overdue: '12%', boost: '+24%' },
+                'IT': { bar: [2500, 400, 300, 200, 800, 150], radar: [95, 98, 88, 60, 95], total: '2,840', rate: '88%', pop: 'Data Science', time: '3.1 วัน', overdue: '5%', boost: '+42%' },
+                'Nursing': { bar: [200, 1800, 500, 100, 400, 300], radar: [70, 85, 92, 90, 60], total: '3,120', rate: '72%', pop: 'Medical Ethics', time: '7.5 วัน', overdue: '18%', boost: '+15%' },
+                'Education': { bar: [400, 300, 2200, 150, 600, 500], radar: [60, 75, 50, 85, 80], total: '4,550', rate: '55%', pop: 'Psychology', time: '4.8 วัน', overdue: '14%', boost: '+30%' },
+                'Engineering': { bar: [900, 200, 300, 400, 1900, 200], radar: [88, 90, 70, 82, 75], total: '1,971', rate: '42%', pop: 'Cabling Design', time: '6.2 วัน', overdue: '25%', boost: '+12%' }
+            };
+
+            const data = chartData[category] || chartData['ทั้งหมด'];
+
+            // Update Stats
+            document.getElementById('statTotal').innerText = data.total;
+            document.getElementById('statRate').innerText = data.rate;
+
+            // Mini Stats
+            document.getElementById('miniStatPop').innerText = data.pop;
+            document.getElementById('miniStatTime').innerText = data.time;
+            document.getElementById('miniStatOverdue').innerText = data.overdue;
+            document.getElementById('miniStatBoost').innerText = data.boost;
+
+            // Highlight Logic for Bar Chart
+            const labels = ['IT', 'Nursing', 'Education', 'Sci', 'Engineering', 'Art'];
+            const baseColors = ['#15803d', '#0891b2', '#7c3aed', '#ea580c', '#e11d48', '#4b5563'];
+
+            const newColors = labels.map((label, idx) => {
+                if (category === 'ทั้งหมด') return baseColors[idx];
+                return label === category ? baseColors[idx] : baseColors[idx] + '33'; // 33 is 20% opacity hex
+            });
+
+            // Update Charts
+            barChart.data.datasets[0].data = data.bar;
+            barChart.data.datasets[0].backgroundColor = newColors;
+            barChart.update();
+
+            radarChart.data.datasets[0].data = data.radar;
+            radarChart.update();
+
+            // Filter Book List
+            renderBookList();
+
+            // Re-render Heatmap
+            renderMonth(currentMonth);
+        }
+
+        function renderBookList() {
+            const list = document.getElementById('bookList');
+            const category = document.getElementById('categoryFilter').value;
+            const searchQuery = document.getElementById('bookSearch').value.toLowerCase();
+            const countLabel = document.getElementById('bookCount');
+
+            list.innerHTML = '';
+
+            let filtered = category === 'ทั้งหมด'
+                ? ALL_BOOKS
+                : ALL_BOOKS.filter(b => b.cat === category);
+
+            if (searchQuery) {
+                filtered = filtered.filter(b =>
+                    b.title.toLowerCase().includes(searchQuery) ||
+                    b.id.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            countLabel.innerText = `${filtered.length} เล่ม`;
+
+            filtered.forEach(book => {
+                const div = document.createElement('div');
+                div.className = 'book-item border-l-4 border-l-transparent';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[8px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded">${book.id}</span>
+                        <span class="text-[8px] opacity-40">${book.cat}</span>
+                    </div>
+                    <div class="text-[11px] font-bold line-clamp-1">${book.title}</div>
+                    <div class="text-[9px] opacity-60">${book.meta}</div>
+                `;
+                div.onclick = () => {
+                    document.querySelectorAll('.book-item').forEach(i => {
+                        i.classList.remove('book-item-active');
+                        i.style.borderLeftColor = 'transparent';
+                    });
+                    div.classList.add('book-item-active');
+                    div.style.borderLeftColor = '#fff';
+
+                    document.getElementById('aiRecText').innerText = book.rec;
+                    document.getElementById('aiRecTarget').innerText = book.target;
+                    document.getElementById('aiRecPanel').classList.remove('hidden');
+                    document.getElementById('recPlaceholder').classList.add('hidden');
+                    lucide.createIcons();
+                };
+                list.appendChild(div);
+            });
+        }
+
+        // Initialize Everything
+        document.getElementById('categoryFilter').onchange = () => updateCharts(document.getElementById('categoryFilter').value);
+        document.getElementById('bookSearch').oninput = () => renderBookList();
+
+        // Heatmap Logic - Monthly View in Thai
+        const monthNames = [
+            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+        ];
+
+        const monthSelector = document.getElementById('monthSelector');
+        const heatmap = document.getElementById('heatmap');
+
+        function renderMonth(monthIdx) {
+            currentMonth = monthIdx;
+            heatmap.innerHTML = '';
+
+            // Get stats for the month (Mocking days and starting offset)
+            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][monthIdx];
+            const startDay = new Date(2025, monthIdx, 1).getDay(); // 0 = Sunday
+
+            // Add Empty cells for padding
+            for (let i = 0; i < startDay; i++) {
+                const empty = document.createElement('div');
+                heatmap.appendChild(empty);
+            }
+
+            const cat = document.getElementById('categoryFilter').value;
+            const multiplier = cat === 'IT' ? 1.5 : (cat === 'Engineering' ? 0.5 : 1);
+
+            // Generate Days
+            for (let d = 1; d <= daysInMonth; d++) {
+                const val = Math.floor(Math.random() * 100 * multiplier);
+                let lvl = 0;
+                if (val > 80) lvl = 4;
+                else if (val > 60) lvl = 3;
+                else if (val > 40) lvl = 2;
+                else if (val > 10) lvl = 1;
+
+                const cell = document.createElement('div');
+                cell.className = `heatmap-cell lvl-${lvl} transition-all duration-500`;
+                cell.innerHTML = `${d} <span>${val} ยืม</span>`;
+                cell.title = `วันที่ ${d} ${monthNames[monthIdx]}: ${val} ครั้ง`;
+                heatmap.appendChild(cell);
+            }
+        }
+
+        // Initialize Month Selector
+        monthNames.forEach((name, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `month-btn ${idx === 0 ? 'month-btn-active' : ''}`;
+            btn.innerText = name;
+            btn.onclick = () => {
+                document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('month-btn-active'));
+                btn.classList.add('month-btn-active');
+                renderMonth(idx);
+            };
+            monthSelector.appendChild(btn);
+        });
+
+        // Charts Init
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['IT', 'Nursing', 'Education', 'Sci', 'Engineering', 'Art'],
+                datasets: [{
+                    label: 'Borrow Count',
+                    data: [1200, 950, 1400, 700, 1100, 850],
+                    backgroundColor: ['#15803d', '#0891b2', '#7c3aed', '#ea580c', '#e11d48', '#4b5563'],
+                    borderRadius: 6,
+                    barThickness: 15
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Horizontal Bar Chart
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { size: 10 },
+                        bodyFont: { size: 10 },
+                        padding: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: { display: false },
+                        ticks: { font: { size: 8 }, color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#475569' }
+                    }
+                }
+            }
+        });
+
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        radarChart = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['ความคุ้มค่า (ROI)', 'คุณภาพเนื้อหา', 'ความต้องการอุปสงค์', 'สภาพหนังสือ', 'ความตรงประเด็น'],
+                datasets: [{
+                    label: 'ดัชนีประสิทธิภาพ',
+                    data: [85, 92, 45, 78, 90],
+                    backgroundColor: 'rgba(21, 128, 61, 0.2)',
+                    borderColor: '#15803d',
+                    pointBackgroundColor: '#15803d'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: { ticks: { display: false }, pointLabels: { font: { size: 8 } } }
+                }
+            }
+        });
+
+        // Initial Calls
+        renderMonth(0);
+        renderBookList('ทั้งหมด');
+
+        // AI Scan Logic
+        function triggerAIScan() {
+            const overlay = document.getElementById('aiScanOverlay');
+            const progress = document.getElementById('scanProgress');
+
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                progress.style.width = '100%';
+            }, 100);
+
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    overlay.style.opacity = '1';
+                    progress.style.width = '0';
+                    // Fast Scroll to Dashboard
+                    document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            }, 2500);
+        }
+
+        // Reveal animations on scroll
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.section-fade').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>
