@@ -53,7 +53,7 @@
         /* Dashboard Specific Styles */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 310px 1fr;
             gap: 1.5rem;
         }
 
@@ -238,6 +238,19 @@
             white-space: nowrap;
             overflow: hidden;
             width: 100%;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -533,7 +546,8 @@
                                 <option value="10">10</option>
                                 <option value="20">20</option>
                                 <option value="50">50</option>
-                                <option value="100" selected>100</option>
+                                <option value="100">100</option>
+                                <option value="all" selected>ทั้งหมด (All)</option>
                             </select>
                         </div>
                     </div>
@@ -731,7 +745,7 @@
             });
         }
 
-        let barChart, radarChart;
+        let barChart, trendChart;
         let currentMonth = 0;
 
         function updateCharts(category) {
@@ -859,7 +873,7 @@
             const list = document.getElementById('bookList');
             const category = document.getElementById('categoryFilter').value;
             const sortVal = document.getElementById('sortFilter').value;
-            const limitVal = parseInt(document.getElementById('limitFilter').value);
+            const limit = document.getElementById('limitFilter').value;
             const searchQuery = document.getElementById('bookSearch').value.toLowerCase();
             const countLabel = document.getElementById('bookCount');
 
@@ -886,9 +900,12 @@
             }
 
             // Apply Limit
-            const displayed = filtered.slice(0, limitVal);
+            const finalLimitVal = limit === 'all' ? filtered.length : parseInt(limit);
+            const displayed = filtered.slice(0, finalLimitVal);
 
-            countLabel.innerText = `${displayed.length} / ${filtered.length} เล่ม`;
+            countLabel.innerText = limit === 'all'
+                ? `${filtered.length} เล่ม`
+                : `${displayed.length} / ${filtered.length} เล่ม`;
 
             displayed.forEach(book => {
                 const div = document.createElement('div');
@@ -915,54 +932,37 @@
             });
         }
 
-        // Initialize Everything
-        document.getElementById('categoryFilter').onchange = () => updateCharts(document.getElementById('categoryFilter').value);
-        document.getElementById('bookSearch').oninput = () => renderBookList();
-
-        // Heatmap Logic - Monthly View in Thai
-        const monthNames = [
-            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-        ];
-
-        const monthSelector = document.getElementById('monthSelector');
-        const heatmap = document.getElementById('heatmap');
-
+        // Monthly Heatmap Logic
         function renderMonth(monthIdx) {
-            currentMonth = monthIdx;
-            heatmap.innerHTML = '';
+            const grid = document.getElementById('heatmap');
+            grid.innerHTML = '';
 
-            // Get stats for the month (Mocking days and starting offset)
-            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][monthIdx];
-            const startDay = new Date(2025, monthIdx, 1).getDay(); // 0 = Sunday
+            const daysInMonth = new Date(2025, monthIdx + 1, 0).getDate();
+            const firstDay = new Date(2025, monthIdx, 1).getDay();
 
-            // Add Empty cells for padding
-            for (let i = 0; i < startDay; i++) {
-                const empty = document.createElement('div');
-                heatmap.appendChild(empty);
+            // Padding for first day
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += '<div class="w-full aspect-square"></div>';
             }
 
-            const cat = document.getElementById('categoryFilter').value;
-            const multiplier = cat === 'IT' ? 1.5 : (cat === 'Engineering' ? 0.5 : 1);
-
-            // Generate Days
             for (let d = 1; d <= daysInMonth; d++) {
-                const val = Math.floor(Math.random() * 100 * multiplier);
-                let lvl = 0;
-                if (val > 80) lvl = 4;
-                else if (val > 60) lvl = 3;
-                else if (val > 40) lvl = 2;
-                else if (val > 10) lvl = 1;
+                const val = Math.floor(Math.random() * 100);
+                let lvl = 'lvl-0';
+                if (val > 80) lvl = 'lvl-4';
+                else if (val > 60) lvl = 'lvl-3';
+                else if (val > 30) lvl = 'lvl-2';
+                else if (val > 0) lvl = 'lvl-1';
 
                 const cell = document.createElement('div');
-                cell.className = `heatmap-cell lvl-${lvl} transition-all duration-500`;
-                cell.innerHTML = `${d} <span>${val} ยืม</span>`;
-                cell.title = `วันที่ ${d} ${monthNames[monthIdx]}: ${val} ครั้ง`;
-                heatmap.appendChild(cell);
+                cell.className = `heatmap-cell ${lvl} animate-in`;
+                cell.innerHTML = `${d} <span>${val}</span>`;
+                grid.appendChild(cell);
             }
         }
 
-        // Initialize Month Selector
+        // Initialize Everything
+        const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        const monthSelector = document.getElementById('monthSelector');
         monthNames.forEach((name, idx) => {
             const btn = document.createElement('button');
             btn.className = `month-btn ${idx === 0 ? 'month-btn-active' : ''}`;
@@ -970,6 +970,7 @@
             btn.onclick = () => {
                 document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('month-btn-active'));
                 btn.classList.add('month-btn-active');
+                currentMonth = idx; // Update global state
                 renderMonth(idx);
             };
             monthSelector.appendChild(btn);
@@ -1016,7 +1017,6 @@
             }
         });
 
-        let trendChart;
         const trendCtx = document.getElementById('trendChart').getContext('2d');
         trendChart = new Chart(trendCtx, {
             type: 'line',
@@ -1076,6 +1076,9 @@
                 }, 500);
             }, 2500);
         }
+
+        // Update Charts on Category Change
+        document.getElementById('categoryFilter').onchange = (e) => updateCharts(e.target.value);
 
         // Reveal animations on scroll
         const observerOptions = { threshold: 0.1 };
