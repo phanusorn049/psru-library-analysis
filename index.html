@@ -541,39 +541,59 @@
 
                 <!-- Main: Charts -->
                 <div class="space-y-6">
-                    <!-- Daily Heatmap -->
-                    <div class="psru-card p-8">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                            <h3 class="font-bold text-slate-900">
-                                สถิติการยืมรายวันปี 2025
-                                <div class="text-[10px] text-green-700 font-bold uppercase mt-1">Monthly Borrowing Data
+                    <!-- Heatmap & Popular Books Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                        <!-- Daily Heatmap (Left) -->
+                        <div class="psru-card p-8 xl:col-span-3">
+                            <div
+                                class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                                <h3 class="font-bold text-slate-900">
+                                    สถิติการยืมรายวันปี 2025
+                                    <div class="text-[10px] text-green-700 font-bold uppercase mt-1">Monthly Borrowing
+                                        Data
+                                    </div>
+                                </h3>
+                                <div class="flex flex-wrap gap-2" id="monthSelector">
+                                    <!-- Month buttons injected by JS -->
                                 </div>
+                            </div>
+
+                            <div
+                                class="grid grid-cols-7 gap-8 mb-4 max-w-600 mx-auto text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <span>อา.</span><span>จ.</span><span>อ.</span><span>พ.</span><span>พฤ.</span><span>ศ.</span><span>ส.</span>
+                            </div>
+
+                            <div id="heatmap" class="heatmap-grid text-slate-500">
+                                <!-- Injected by JS -->
+                            </div>
+
+                            <div class="mt-8 flex justify-center gap-6 text-[10px] items-center border-t pt-6">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 lvl-0 rounded-sm"></div> <span class="text-slate-500">0
+                                        คราว</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 lvl-2 rounded-sm"></div> <span class="text-slate-500">1-40
+                                        ครั้ง</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 lvl-4 rounded-sm"></div> <span class="text-slate-500">80+
+                                        ครั้ง</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Books (Right) -->
+                        <div class="psru-card p-8 flex flex-col gap-6">
+                            <h3 class="font-bold text-slate-900 border-b pb-4 flex items-center gap-2">
+                                <i data-lucide="crown" class="w-4 h-4 text-orange-500"></i> หนังสือยอดนิยม
                             </h3>
-                            <div class="flex flex-wrap gap-2" id="monthSelector">
-                                <!-- Month buttons injected by JS -->
+                            <div id="popularBooksList" class="space-y-6 flex-1">
+                                <!-- Items injected by JS -->
                             </div>
-                        </div>
-
-                        <div
-                            class="grid grid-cols-7 gap-8 mb-4 max-w-600 mx-auto text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <span>อา.</span><span>จ.</span><span>อ.</span><span>พ.</span><span>พฤ.</span><span>ศ.</span><span>ส.</span>
-                        </div>
-
-                        <div id="heatmap" class="heatmap-grid text-slate-500">
-                            <!-- Injected by JS -->
-                        </div>
-
-                        <div class="mt-8 flex justify-center gap-6 text-[10px] items-center border-t pt-6">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 lvl-0 rounded-sm"></div> <span class="text-slate-500">0 คราว</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 lvl-2 rounded-sm"></div> <span class="text-slate-500">1-40
-                                    ครั้ง</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 lvl-4 rounded-sm"></div> <span class="text-slate-500">80+
-                                    ครั้ง</span>
+                            <div
+                                class="bg-orange-50 p-4 rounded-xl border border-orange-100 italic text-[10px] text-orange-700">
+                                "กลุ่มหนังสือที่มียอดการยืมพุ่งสูงขึ้น 40% ในเดือนที่ผ่านมา"
                             </div>
                         </div>
                     </div>
@@ -754,8 +774,63 @@
             // Filter Book List
             renderBookList();
 
+            // Render Popular Books
+            renderPopularBooks(category);
+
             // Re-render Heatmap
             renderMonth(currentMonth);
+        }
+
+        function renderPopularBooks(category) {
+            const list = document.getElementById('popularBooksList');
+            const popData = {
+                'ทั้งหมด': [
+                    { title: 'ครูไทยยุค AI 2025', borrow: 124, trend: '+12%' },
+                    { title: 'พยาบาลศาสตร์เชิงปฏิบัติ', borrow: 98, trend: '+5%' },
+                    { title: 'วิศวกรรมซอฟต์แวร์ 101', borrow: 87, trend: '+22%' }
+                ],
+                'IT': [
+                    { title: 'Deep Learning with Python', borrow: 245, trend: '+45%' },
+                    { title: 'Data Tech for Businesses', borrow: 180, trend: '+30%' },
+                    { title: 'Cyber Security Essentials', borrow: 156, trend: '+15%' }
+                ],
+                'Nursing': [
+                    { title: 'กายวิภาคศาสตร์ฉบับสมบูรณ์', borrow: 312, trend: '+10%' },
+                    { title: 'การพยาบาลเด็กเวชปฏิบัติ', borrow: 240, trend: '+8%' },
+                    { title: 'การให้ยาระงับความรู้สึก', borrow: 198, trend: '+4%' }
+                ],
+                'Education': [
+                    { title: 'จิตวิทยาการเรียนการสอน', borrow: 289, trend: '+12%' },
+                    { title: 'การออกแบบนวัตกรรมครู', borrow: 210, trend: '+18%' },
+                    { title: 'วิจัยทางการศึกษาเบื้องต้น', borrow: 185, trend: '+6%' }
+                ],
+                'Engineering': [
+                    { title: 'AutoCAD 2025 Professional', borrow: 210, trend: '+50%' },
+                    { title: 'การคำนวณโครงสร้างตึกสูง', borrow: 180, trend: '+20%' },
+                    { title: 'ระบบรางและขนส่งมวลชน', borrow: 145, trend: '+12%' }
+                ]
+            };
+
+            const books = popData[category] || popData['ทั้งหมด'];
+            list.innerHTML = '';
+
+            books.forEach((book, idx) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-4 group cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-all';
+                div.innerHTML = `
+                    <div class="w-8 h-8 flex items-center justify-center font-black text-slate-300 text-lg group-hover:text-green-700 transition-colors">
+                        0${idx + 1}
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-[11px] font-bold text-slate-900 group-hover:text-green-700 transition-colors">${book.title}</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[9px] text-slate-400">ยืม ${book.borrow} ครั้ง</span>
+                            <span class="text-[8px] font-bold text-green-600 bg-green-50 px-1 py-0.5 rounded">${book.trend}</span>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
         }
 
         function renderBookList() {
