@@ -585,9 +585,8 @@
                             <canvas id="barChart"></canvas>
                         </div>
                         <div class="psru-card p-8 h-[350px]">
-                            <h3 class="font-bold text-slate-900 mb-4 text-sm">วิเคราะห์ความคุ้มค่า (ROI) - AI คาดการณ์
-                            </h3>
-                            <canvas id="radarChart"></canvas>
+                            <h3 class="font-bold text-slate-900 mb-4 text-sm">แนวโน้มการยืมรายเดือน (12 เดือน)</h3>
+                            <canvas id="trendChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -695,11 +694,31 @@
 
         function updateCharts(category) {
             const chartData = {
-                'ทั้งหมด': { bar: [1200, 950, 1400, 700, 1100, 850], radar: [85, 92, 45, 78, 90], total: '12,481', rate: '64%', pop: 'Education', time: '5.2 วัน', overdue: '12%', boost: '+24%' },
-                'IT': { bar: [2500, 400, 300, 200, 800, 150], radar: [95, 98, 88, 60, 95], total: '2,840', rate: '88%', pop: 'Data Science', time: '3.1 วัน', overdue: '5%', boost: '+42%' },
-                'Nursing': { bar: [200, 1800, 500, 100, 400, 300], radar: [70, 85, 92, 90, 60], total: '3,120', rate: '72%', pop: 'Medical Ethics', time: '7.5 วัน', overdue: '18%', boost: '+15%' },
-                'Education': { bar: [400, 300, 2200, 150, 600, 500], radar: [60, 75, 50, 85, 80], total: '4,550', rate: '55%', pop: 'Psychology', time: '4.8 วัน', overdue: '14%', boost: '+30%' },
-                'Engineering': { bar: [900, 200, 300, 400, 1900, 200], radar: [88, 90, 70, 82, 75], total: '1,971', rate: '42%', pop: 'Cabling Design', time: '6.2 วัน', overdue: '25%', boost: '+12%' }
+                'ทั้งหมด': {
+                    bar: [1200, 950, 1400, 700, 1100, 850],
+                    trend: [450, 520, 610, 580, 700, 820, 950, 890, 760, 680, 550, 480],
+                    total: '12,481', rate: '64%', pop: 'Education', time: '5.2 วัน', overdue: '12%', boost: '+24%'
+                },
+                'IT': {
+                    bar: [2500, 400, 300, 200, 800, 150],
+                    trend: [120, 150, 280, 320, 450, 580, 890, 950, 820, 600, 400, 300],
+                    total: '2,840', rate: '88%', pop: 'Data Science', time: '3.1 วัน', overdue: '5%', boost: '+42%'
+                },
+                'Nursing': {
+                    bar: [200, 1800, 500, 100, 400, 300],
+                    trend: [300, 320, 350, 400, 380, 420, 450, 500, 550, 600, 580, 520],
+                    total: '3,120', rate: '72%', pop: 'Medical Ethics', time: '7.5 วัน', overdue: '18%', boost: '+15%'
+                },
+                'Education': {
+                    bar: [400, 300, 2200, 150, 600, 500],
+                    trend: [500, 550, 600, 700, 850, 900, 950, 880, 750, 620, 580, 540],
+                    total: '4,550', rate: '55%', pop: 'Psychology', time: '4.8 วัน', overdue: '14%', boost: '+30%'
+                },
+                'Engineering': {
+                    bar: [900, 200, 300, 400, 1900, 200],
+                    trend: [100, 120, 150, 200, 250, 300, 400, 450, 500, 550, 600, 650],
+                    total: '1,971', rate: '42%', pop: 'Cabling Design', time: '6.2 วัน', overdue: '25%', boost: '+12%'
+                }
             };
 
             const data = chartData[category] || chartData['ทั้งหมด'];
@@ -728,8 +747,9 @@
             barChart.data.datasets[0].backgroundColor = newColors;
             barChart.update();
 
-            radarChart.data.datasets[0].data = data.radar;
-            radarChart.update();
+            trendChart.data.datasets[0].data = data.trend;
+            trendChart.data.datasets[0].borderColor = category === 'ทั้งหมด' ? '#15803d' : baseColors[labels.indexOf(category)];
+            trendChart.update();
 
             // Filter Book List
             renderBookList();
@@ -885,17 +905,23 @@
             }
         });
 
-        const radarCtx = document.getElementById('radarChart').getContext('2d');
-        radarChart = new Chart(radarCtx, {
-            type: 'radar',
+        let trendChart;
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        trendChart = new Chart(trendCtx, {
+            type: 'line',
             data: {
-                labels: ['ความคุ้มค่า (ROI)', 'คุณภาพเนื้อหา', 'ความต้องการอุปสงค์', 'สภาพหนังสือ', 'ความตรงประเด็น'],
+                labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'],
                 datasets: [{
-                    label: 'ดัชนีประสิทธิภาพ',
-                    data: [85, 92, 45, 78, 90],
-                    backgroundColor: 'rgba(21, 128, 61, 0.2)',
+                    label: 'ยอดการยืม',
+                    data: [450, 520, 610, 580, 700, 820, 950, 890, 760, 680, 550, 480],
                     borderColor: '#15803d',
-                    pointBackgroundColor: '#15803d'
+                    backgroundColor: 'rgba(21, 128, 61, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
@@ -903,7 +929,12 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    r: { ticks: { display: false }, pointLabels: { font: { size: 8 } } }
+                    x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { size: 9 } }
+                    }
                 }
             }
         });
